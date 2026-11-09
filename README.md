@@ -1,92 +1,107 @@
 # 't Fratertje
 
-Laravel-applicatie voor de ledenadministratie van vogelvereniging 't Fratertje. De openbare website bevat de contributietarieven en formulieren voor aanmelden en afmelden. In de administratie kunnen leden, lidsoorten, kweeknummers, aanvragen en facturen worden beheerd.
+Laravel-applicatie voor vogelvereniging 't Fratertje. Op de openbare website kunnen bezoekers de contributietarieven bekijken en zich aanmelden of afmelden. In de administratie kunnen beheerders leden, lidsoorten, kweeknummers, aanvragen en facturen beheren.
 
 ## Vereisten
 
-- Gebruik PHP 8.5.4. Met die versie is het project getest.
-- Laravel 13.30.1, zoals vastgelegd in composer.lock.
-- MySQL 8.0.45 en Composer.
-- De gebruikelijke PHP-extensies voor Laravel, waaronder pdo_mysql, mbstring, openssl, curl, dom en xml.
-- Voor de SQLite-tests: pdo_sqlite en sqlite3.
+- PHP 8.4.1 of hoger. Het project is getest met PHP 8.5.4.
+- Composer en MySQL. De gebruikte MySQL-versie was 8.0.45.
+- PHP-extensies voor Laravel, waaronder `pdo_mysql`, `mbstring`, `openssl`, `curl`, `dom` en `xml`.
+- Voor de SQLite-tests zijn `pdo_sqlite` en `sqlite3` nodig.
 
-De bestaande Laravel-versie is behouden. Of Laravel 13 door de opleiding wordt ondersteund, moet nog worden afgestemd.
+De applicatie gebruikt Laravel 13.30.1. Composer installeert de versies die in `composer.lock` staan.
 
-## Installatie in een nieuwe omgeving
+## Installatie
 
-1. Pak de applicatie uit en voer `composer install --no-interaction` uit.
-2. Kopieer `.env.example` naar `.env` en vul de instellingen van een nieuwe lege MySQL-database in.
+1. Open de projectmap in een terminal en voer `composer install --no-interaction` uit.
+2. Kopieer `.env.example` naar `.env`. Vul de instellingen van een **nieuwe, lege MySQL-database** in.
 3. Voer `php artisan key:generate` uit.
-4. Voer `php artisan migrate --seed --no-interaction` uit.
-5. Start de applicatie met `php artisan serve` of gebruik Laravel Herd. Zet `APP_URL` in `.env` gelijk aan het adres dat je in de browser opent. Bij `php artisan serve` staat dat adres in de terminal.
+4. Voer `php artisan migrate --seed --no-interaction` uit om de database op te bouwen en de vaste gegevens toe te voegen.
+5. Start de applicatie met `php artisan serve` of gebruik Laravel Herd. Zet `APP_URL` in `.env` op het adres waarop je de applicatie opent. Bij `php artisan serve` zie je dat adres in de terminal.
 
-De projectmap op de huidige computer is `C:\laravel\fratertje_pgb09`. De bijbehorende website is `http://fratertje_pgb09.test`. De bestaande `.env` is behouden. Tijdens de demonstratie wordt deze echte lokale omgeving gebruikt.
-
-De database heeft zes bestaande migrations. Er zijn geen extra tabellen, kolommen of triggers nodig voor deze versie. De instemmingsverklaring wordt opgeslagen in de JSON-gegevens van de aanvraag.
-
-De views laden `public/app.css` en `public/app.js` rechtstreeks. Voor de huidige interface is geen Vite-build nodig.
+De pagina’s laden `public/app.css` en `public/app.js` rechtstreeks. Voor deze interface hoef je geen Vite-build uit te voeren.
 
 ## Lokaal testaccount
 
-- E-mailadres: `beheerder@fratertje.test`
-- Wachtwoord: `Fratertje-Demo-2026!`
+Open `/login` en gebruik het lokale testaccount.
 
-Dit account is uitsluitend bedoeld voor lokaal testen. DatabaseSeeder maakt het alleen in de omgevingen local en testing. Wachtwoorden worden gehasht opgeslagen.
+| Veld | Waarde |
+| --- | --- |
+| E-mailadres | `beheerder@fratertje.test` |
+| Wachtwoord | `Fratertje-Demo-2026!` |
+
+`DatabaseSeeder` maakt dit account aan in de omgevingen `local` en `testing`. Het wachtwoord wordt gehasht opgeslagen.
 
 ## Instellingen
 
-Database-instellingen en APP_KEY staan in `.env`. Gebruik `APP_LOCALE=nl` voor de Nederlandse meldingen. `APP_URL` moet overeenkomen met het adres waarop de website wordt geopend, omdat afmeldlinks worden ondertekend.
+- Zet de database-instellingen en `APP_KEY` in `.env`.
+- Gebruik `APP_LOCALE=nl` voor Nederlandse meldingen.
+- Zet `APP_URL` op het adres waarop je de applicatie gebruikt. Dat adres is nodig voor de ondertekende afmeldlinks.
+- Gebruik `MAIL_MAILER=log` om e-mails lokaal te testen. De berichten komen in `storage/logs/laravel.log` terecht. Gebruik voor tests en demonstraties fictieve adressen, bijvoorbeeld op `example.test`.
 
-Voor lokale e-mail wordt `MAIL_MAILER=log` gebruikt. Berichten staan dan in `storage/logs/laravel.log` en worden niet naar een echte ontvanger verstuurd. Gebruik bij demonstraties alleen fictieve adressen, bijvoorbeeld op `example.test`.
-
-De automatische omzetting van jeugd naar volwassen lid draait via de scheduler. Start die lokaal met `php artisan schedule:work`. Het commando kan ook handmatig worden uitgevoerd met `php artisan members:age`.
+De automatische omzetting van jeugdleden naar volwassen leden draait via de Laravel-scheduler. Start die lokaal met `php artisan schedule:work`. Je kunt de omzetting ook handmatig uitvoeren met `php artisan members:age`.
 
 ## Testen
 
-```powershell
+Draai de standaardtests met SQLite in het geheugen.
+
+```bash
 php vendor/bin/pest --compact
+```
+
+Maak voor de MySQL-tests een aparte lege database `fratertje_test` aan en gebruik de instellingen uit `phpunit.mysql.xml`.
+
+```bash
 php vendor/bin/pest -c phpunit.mysql.xml --compact
 ```
 
-De eerste opdracht gebruikt SQLite in het geheugen. Voor de tweede is een aparte MySQL-database `fratertje_test` nodig. De testinstellingen mogen nooit naar de database van de gebruikte website verwijzen. TestCase weigert MySQL-testdatabases waarvan de naam niet eindigt op `_test`.
+`TestCase` weigert MySQL-testdatabases waarvan de naam niet eindigt op `_test`. Gebruik voor tests altijd een afzonderlijke database. Bij de uitgevoerde MySQL-test zijn 84 tests geslaagd.
 
-De extra tests in `tests/Compatibility` controleren aanmelden, afmelden en herstel op de bestaande databasestructuur. Ze hebben een afzonderlijke database met de naam `fratertje_compat_test` nodig. Het bijbehorende profiel is `phpunit.compat.xml`.
+De compatibiliteitstests controleren aanmelden, afmelden en herstellen op de bestaande databasestructuur. Gebruik daarvoor een aparte database `fratertje_compat_test` met een kopie van die structuur.
 
-Controle van de PHP-opmaak:
+```bash
+php vendor/bin/pest -c phpunit.compat.xml --compact
+```
 
-```powershell
+Controleer de PHP-opmaak met Pint.
+
+```bash
 php vendor/bin/pint --test
 ```
 
 ## Bedrijfsregels
 
-Er zijn precies drie lidsoorten:
+De vereniging heeft drie lidsoorten.
 
-- Jeugdlid: jonger dan 18 jaar.
-- Volwassen lid: vanaf 18 jaar. Senior- en standaardlid betekenen hetzelfde.
-- Gastlid: alle leeftijden, zonder NBvV-lidmaatschap.
+| Lidsoort | Leeftijd | NBvV-lidmaatschap | Jaarlijks basistarief |
+| --- | --- | --- | --- |
+| Jeugdlid | Jonger dan 18 jaar | Ja | € 18 |
+| Volwassen lid | Vanaf 18 jaar | Ja | € 36 |
+| Gastlid | Alle leeftijden | Nee | € 18 |
 
-Jeugd- en volwassen leden hebben altijd een uniek NBvV-lidnummer/kweeknummer, ook als hun lidmaatschap nog niet actief is. Een gastlid mag geen kweeknummer hebben. Een actief gastlid zonder nummer is dus geldig. Met ringnummer wordt in deze opdracht hetzelfde NBvV-/kweeknummer bedoeld.
+Een volwassen lid wordt in de opdracht ook seniorlid of standaardlid genoemd. Jeugdleden en volwassen leden hebben een uniek NBvV-lidnummer, ook als hun lidmaatschap nog niet actief is. In de applicatie heet dit het **kweeknummer**. De opdracht gebruikt hiervoor ook het woord *ringnummer*. Een gastlid mag geen kweeknummer hebben en kan wel actief zijn.
 
-De leeftijd bepaalt de lidsoort. Voor contributie geldt een andere regel: in het hele kalenderjaar waarin iemand 18 wordt, blijft het jeugdtarief gelden. Dit geldt ook voor een verjaardag op 1 januari.
+Voor de contributie betaalt een lid het hele kalenderjaar waarin het 18 wordt nog het jeugdtarief. Dat geldt ook bij een verjaardag op 1 januari. Een tariefwijziging geldt vanaf het volgende jaar. Bestaande facturen bewaren hun oorspronkelijke bedrag en gegevens.
 
-De jaarlijkse basisprijzen zijn 36 euro voor volwassen leden en 18 euro voor jeugd- en gastleden. Een tariefwijziging via beheer geldt vanaf het volgende jaar. Bestaande facturen bewaren hun bedrag en een momentopname van de gegevens.
+Bij aanmelden en afmelden telt de applicatie drie weken op bij de aanvraagdatum. Daarna neemt ze de eerste dag van de volgende maand. Bij een afmelding telt de beëindigingsmaand mee voor de terugbetaling.
 
-Voor aanmelden en afmelden geldt de bevestigde termijn: tel drie weken op en neem daarna de eerste dag van de volgende maand. De einddatum is exclusief. Voorbeelden: 5 maart wordt 1 april, met negen contributiemaanden; 25 maart wordt 1 mei, met acht maanden. Vanaf 1 juni zijn er zeven maanden over.
+- Aanmelden op 5 maart geeft een ingangsdatum van 1 april en negen contributiemaanden.
+- Aanmelden op 25 maart geeft een ingangsdatum van 1 mei en acht contributiemaanden.
+- Bij beëindiging per 1 juni blijven er zeven maanden over voor terugbetaling.
 
-## Belangrijkste onderdelen
+## Opbouw van de applicatie
 
-- `MemberRequest` valideert de leden- en aanmeldformulieren.
-- `MemberService` slaat lid, adres en nummer binnen één transactie op en regelt archiveren en herstellen.
-- `RequestService` verwerkt aanmeldingen uit quarantaine en bevestigde afmeldingen.
-- `InvoiceRequested` wordt verzonden bij het aanmaken van een factuur. `CalculateInvoice` berekent en bewaart het bedrag.
-- `MembershipDates` bevat helpers voor de maandgrens, het jeugdtariefjaar en geldnotatie.
-- `MembershipRequest` bewaart naam, tekst, versie en tijdstip van de digitale instemming. Het formulier gebruikt geen gekwalificeerde elektronische handtekening.
+- `MemberRequest` valideert de gegevens van leden en aanmeldingen.
+- `MemberService` slaat het lid, adres en kweeknummer binnen één databasetransactie op en verwerkt archiveren en herstellen.
+- `RequestService` verwerkt aanmeldingen die op beoordeling wachten en bevestigde afmeldingen.
+- Bij het aanmaken van een factuur zorgt het event `InvoiceRequested` ervoor dat `CalculateInvoice` het bedrag berekent en opslaat.
+- `MembershipDates` bevat helpers voor de maandgrens, het jeugdtariefjaar en de weergave van bedragen.
+- `MembershipRequest` bewaart de naam van de aanvrager, de verklaring, de versie van de verklaring en het tijdstip van instemming in de JSON-gegevens van de aanvraag. Het formulier gebruikt geen gekwalificeerde elektronische handtekening.
 
-De database bewaakt foreign keys, unieke adressenkoppelingen en unieke nummers. De MySQL CHECKs bewaken de soortcodes en de NBvV-uitzondering voor gastleden. Aanvullende samenhang wordt gecontroleerd door Laravel-validatie en de services. Rechtstreekse SQL buiten de applicatie om kan sommige controles omzeilen, zoals het aanmaken van een lid zonder bijbehorende nummerrecord.
+De database gebruikt foreign keys en unieke voorwaarden voor adreskoppelingen en kweeknummers. MySQL-controles bewaken de lidsoortcodes en de NBvV-regel voor gastleden. Laravel controleert daarnaast of een jeugdlid of volwassen lid een bijbehorend kweeknummer heeft. Een rechtstreekse SQL-wijziging kan die laatste controle omzeilen.
 
 ## Oplevering
 
-Bij de applicatie horen het verslag, het ERD, de controletabel, de testresultaten, de MySQL-export met fictieve gegevens en de demonstratievideo. Deze opleverbestanden worden apart van de broncode geleverd. De actuele status en eventuele ontbrekende onderdelen staan in de controletabel.
+Deze repository bevat de broncode, migrations, seeders en tests. Gebruik `composer install` om `vendor` op te bouwen en maak je eigen `.env` aan op basis van `.env.example`.
 
-De bronexport bevat geen vendor, ingevulde `.env`, sessies, logs of private back-ups. De gebruikte databasestructuur blijft gelijk aan de bestaande structuur. Geautomatiseerde tests draaien alleen op afzonderlijke testdatabases. Voor de demonstratie zijn fictieve gegevens gebruikt en is vooraf een volledige back-up gemaakt.
+De demonstratie is opgenomen in de bestaande lokale omgeving met fictieve gegevens. De automatische tests zijn uitgevoerd op afzonderlijke testdatabases.
