@@ -23,9 +23,9 @@ class BreedingNumberController extends Controller
         return redirect()->route('members.create')->with('success', 'Registreer het kweeknummer samen met het lid; een NBvV-lid kan niet zonder nummer bestaan.');
     }
 
-    public function show(BreedingNumber $breedingNumber): RedirectResponse
+    public function show(string $breedingNumber): View
     {
-        return redirect()->route('members.show', $breedingNumber->member_id);
+        return view('numbers.show', ['number' => BreedingNumber::withTrashed()->with('member')->findOrFail($breedingNumber)]);
     }
 
     public function edit(BreedingNumber $breedingNumber): View
@@ -51,5 +51,13 @@ class BreedingNumberController extends Controller
         $service->archive($breedingNumber->member);
 
         return back()->with('success', 'Kweeknummer en bijbehorend lid gearchiveerd; herstel via het ledenarchief.');
+    }
+
+    public function restore(string $breedingNumber, MemberService $service): RedirectResponse
+    {
+        $number = BreedingNumber::onlyTrashed()->findOrFail($breedingNumber);
+        $service->restore($number->member_id);
+
+        return back()->with('success', 'Kweeknummer, lid en adres samen hersteld.');
     }
 }

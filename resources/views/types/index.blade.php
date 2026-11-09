@@ -8,7 +8,7 @@
 <div class="grid">
 @foreach($types as $type)<section class="card">
 <p class="eyebrow">{{ $type->code }} {{ $type->trashed()?'· archief':'' }}</p>
-<h2>{{ $type->name }}</h2>
+<h2><a href="{{ route('member-types.show',$type->id) }}">{{ $type->name }}</a></h2>
 <p>{{ $type->description }}</p>
 @foreach($type->rates->sortBy('year') as $rate)<p>Vanaf {{ $rate->year }}: <strong>{{ \App\Support\MembershipDates::money($rate->amount_cents) }}</strong>/jaar</p>
 @endforeach<div class="actions">@if($type->trashed())<form method="post" action="{{ route('member-types.restore',$type->id) }}">

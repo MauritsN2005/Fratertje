@@ -8,3 +8,6 @@ it('calculates the first month strictly after the waiting period', function ($in
 it('keeps the youth rate throughout the eighteenth birthday year', function ($birth, $year, $expected) {
     expect(MembershipDates::youthRate($birth, $year))->toBe($expected);
 })->with([['2008-01-01', 2026, true], ['2008-12-31', 2026, true], ['2007-12-31', 2026, false]]);
+it('formats whole cents for invoices and credit notes', function (int $cents, string $formatted) {
+    expect(MembershipDates::money($cents))->toBe($formatted);
+})->with([[2700, '€ 27,00'], [-600, '€ -6,00'], [0, '€ 0,00']]);

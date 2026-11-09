@@ -23,6 +23,11 @@ class MemberTypeController extends Controller
         return view('types.form', ['type' => new MemberType]);
     }
 
+    public function show(string $memberType): View
+    {
+        return view('types.show', ['type' => MemberType::withTrashed()->with('rates')->findOrFail($memberType)]);
+    }
+
     public function edit(MemberType $memberType): View
     {
         return view('types.form', ['type' => $memberType]);
@@ -32,12 +37,14 @@ class MemberTypeController extends Controller
     {
         return $request->validate(['name' => 'required|string|max:80', 'description' => 'required|string|max:1000',
             'code' => [$type ? 'prohibited' : 'required', Rule::in(['adult', 'youth', 'guest']), Rule::unique('member_types', 'code')],
-            'price' => 'required|decimal:0,2|numeric|min:0|max:9999']);
+            'price' => [$type ? 'required' : 'nullable', 'decimal:0,2', 'numeric', 'min:0', 'max:9999']]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $data = $this->data($request);
+        $amount = $data['code'] === 'adult' ? 3600 : 1800;
+        $data['price'] = $amount / 100;
         DB::transaction(function () use ($data) {
             $type = MemberType::create($data);
             $type->rates()->create(['year' => now()->year, 'amount_cents' => (int) round($data['price'] * 100), 'announced_at' => now()]);
@@ -59,10 +66,13 @@ class MemberTypeController extends Controller
 
     public function destroy(MemberType $memberType): RedirectResponse
     {
-        if ($memberType->members()->withTrashed()->exists() || MembershipRequest::where('status', 'pending')->where('kind', 'registration')->get()->contains(fn ($r) => ($r->payload['member_type_id'] ?? null) == $memberType->id)) {
-            throw ValidationException::withMessages(['type' => 'Deze lidsoort is nog gekoppeld aan leden of aanvragen.']);
-        }
-        $memberType->delete();
+        DB::transaction(function () use ($memberType) {
+            $memberType = MemberType::whereKey($memberType->id)->lockForUpdate()->firstOrFail();
+            if ($memberType->members()->withTrashed()->exists() || MembershipRequest::where('status', 'pending')->where('kind', 'registration')->get()->contains(fn ($r) => ($r->payload['member_type_id'] ?? null) == $memberType->id)) {
+                throw ValidationException::withMessages(['type' => 'Deze lidsoort is nog gekoppeld aan leden of aanvragen.']);
+            }
+            $memberType->delete();
+        });
 
         return back()->with('success', 'Lidsoort gearchiveerd.');
     }

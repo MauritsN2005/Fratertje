@@ -19,19 +19,6 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     $this->travelTo(Carbon::parse('2026-09-29 12:00:00'));
 });
-function adminSetup($test): void
-{
-    $test->seed();
-    $test->actingAs(User::factory()->create());
-}
-function memberInput(array $overrides = []): array
-{
-    return array_replace(['first_name' => 'Noor', 'last_name' => 'Veld', 'email' => 'noor@example.test', 'birth_date' => '1990-05-12', 'member_type_id' => MemberType::where('code', 'adult')->value('id'), 'nbvv_number' => 'AB12', 'street' => 'Vogelstraat', 'house_number' => '8', 'postal_code' => '1234 AB', 'city' => 'Gouda', 'registered_at' => '2026-03-05', 'signer_name' => 'Noor Veld'], $overrides);
-}
-function sampleMember(array $overrides = []): Member
-{
-    return app(MemberService::class)->save(memberInput($overrides));
-}
 it('protects administration pages', function ($route) {
     $this->get(route($route))->assertRedirect(route('login'));
 })->with(['dashboard', 'members.index', 'members.create', 'member-types.index', 'breeding-numbers.index', 'requests.index', 'invoices.index']);

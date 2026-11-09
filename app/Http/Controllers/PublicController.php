@@ -31,7 +31,7 @@ class PublicController extends Controller
     {
         $data = $request->safe()->except('consent');
         $data['registered_at'] = today()->toDateString();
-        MembershipRequest::create(['kind' => 'registration', 'payload' => $data, 'requested_at' => today(), 'effective_at' => MembershipDates::effective($data['registered_at']), 'consented_at' => now(), 'consent_version' => '2026-09-v1']);
+        MembershipRequest::create(['kind' => 'registration', 'payload' => $data, 'requested_at' => today(), 'effective_at' => MembershipDates::effective($data['registered_at']), 'consented_at' => now(), 'consent_version' => config('membership.consent_version'), 'consent_statement' => config('membership.registration_statement')]);
 
         return redirect()->route('home')->with('success', 'Je aanmelding is ontvangen. De administratie controleert je gegevens.');
     }
@@ -66,7 +66,7 @@ class PublicController extends Controller
             if ($member->ends_at || MembershipRequest::where('member_id', $member->id)->where('kind', 'cancellation')->where('status', 'pending')->exists()) {
                 return;
             }
-            MembershipRequest::create(['kind' => 'cancellation', 'member_id' => $member->id, 'payload' => ['name' => $member->full_name], 'requested_at' => today(), 'effective_at' => MembershipDates::effective(today()->toDateString()), 'consented_at' => now(), 'consent_version' => '2026-09-v1']);
+            MembershipRequest::create(['kind' => 'cancellation', 'member_id' => $member->id, 'payload' => ['name' => $member->full_name], 'requested_at' => today(), 'effective_at' => MembershipDates::effective(today()->toDateString())->max($member->starts_at), 'consented_at' => now(), 'consent_version' => config('membership.consent_version'), 'consent_statement' => config('membership.cancellation_statement')]);
         });
 
         return redirect()->route('home')->with('success', 'Je afmelding is opgeslagen. De administratie verwerkt de einddatum en eventuele teruggave.');

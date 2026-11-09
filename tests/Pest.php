@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\Member;
+use App\Models\MemberType;
+use App\Models\User;
+use App\Services\MemberService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -16,7 +20,7 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
  // ->use(RefreshDatabase::class)
-    ->in('Feature');
+    ->in('Feature', 'Compatibility');
 
 /*
 |--------------------------------------------------------------------------
@@ -47,4 +51,20 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+function adminSetup(TestCase $test): void
+{
+    $test->seed();
+    $test->actingAs(User::factory()->create());
+}
+
+function memberInput(array $overrides = []): array
+{
+    return array_replace(['first_name' => 'Noor', 'last_name' => 'Veld', 'email' => 'noor@example.test', 'birth_date' => '1990-05-12', 'member_type_id' => MemberType::where('code', 'adult')->value('id'), 'nbvv_number' => 'AB12', 'street' => 'Vogelstraat', 'house_number' => '8', 'postal_code' => '1234 AB', 'city' => 'Gouda', 'registered_at' => '2026-03-05', 'signer_name' => 'Noor Veld'], $overrides);
+}
+
+function sampleMember(array $overrides = []): Member
+{
+    return app(MemberService::class)->save(memberInput($overrides));
 }

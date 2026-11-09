@@ -20,7 +20,7 @@ class MemberController extends Controller
             $query->onlyTrashed();
         }
         if ($q = $data['q'] ?? null) {
-            $query->where(fn ($s) => $s->where('first_name', 'like', "%$q%")->orWhere('last_name', 'like', "%$q%")->orWhere('nbvv_number', 'like', "%$q%")->orWhereHas('memberType', fn ($t) => $t->where('name', 'like', "%$q%")));
+            $query->where(fn ($s) => $s->where('first_name', 'like', "%$q%")->orWhere('last_name', 'like', "%$q%")->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%$q%"])->orWhere('nbvv_number', 'like', "%$q%")->orWhereHas('memberType', fn ($t) => $t->where('name', 'like', "%$q%")));
         }
         if ($type = $data['type'] ?? null) {
             $query->where('member_type_id', $type);
@@ -36,7 +36,7 @@ class MemberController extends Controller
             $query->where(fn ($q) => $q->where('is_active', false)->orWhereDate('starts_at', '>', today())->orWhereDate('ends_at', '<=', today()));
         }
 
-        return view('members.index', ['members' => $query->orderBy('last_name')->paginate(20)->withQueryString(), 'types' => MemberType::withTrashed()->get()]);
+        return view('members.index', ['members' => $query->orderBy('last_name')->orderBy('id')->paginate(20)->withQueryString(), 'types' => MemberType::withTrashed()->get()]);
     }
 
     public function create(): View

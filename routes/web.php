@@ -26,9 +26,10 @@ Route::middleware('auth')->prefix('administratie')->group(function () {
     Route::get('/', DashboardController::class)->name('dashboard');
     Route::resource('members', MemberController::class);
     Route::post('members/{member}/restore', [MemberController::class, 'restore'])->name('members.restore');
-    Route::resource('member-types', MemberTypeController::class)->except('show');
+    Route::resource('member-types', MemberTypeController::class);
     Route::post('member-types/{memberType}/restore', [MemberTypeController::class, 'restore'])->name('member-types.restore');
     Route::resource('breeding-numbers', BreedingNumberController::class)->except('store');
+    Route::post('breeding-numbers/{breedingNumber}/restore', [BreedingNumberController::class, 'restore'])->name('breeding-numbers.restore');
     Route::get('requests', [RequestController::class, 'index'])->name('requests.index');
     Route::post('requests/{membershipRequest}/approve', [RequestController::class, 'approve'])->name('requests.approve');
     Route::post('requests/{membershipRequest}/reject', [RequestController::class, 'reject'])->name('requests.reject');

@@ -12,7 +12,7 @@ class CancellationLink extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Bevestig je afmelding bij t Fratertje');
+        return new Envelope(subject: "Bevestig je afmelding bij 't Fratertje");
     }
 
     public function content(): Content

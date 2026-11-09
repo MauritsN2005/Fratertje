@@ -5,11 +5,12 @@
 <form class="card" method="post" action="{{ route('registration.store') }}">
 @csrf 
 @include('members.fields',['public'=>true])<div class="field">
-<label for="signer_name">Naam ondertekenaar (bij minderjarigen: ouder/verzorger)</label>
+<label for="signer_name">Naam van degene die instemt (bij minderjarigen: ouder/verzorger)</label>
 <input id="signer_name" name="signer_name" value="{{ old('signer_name') }}" maxlength="180" required>
 </div>
 <label class="consent">
-<input type="checkbox" name="consent" value="1" required @checked(old('consent'))> Ik meld mij aan als lid, verklaar dat mijn gegevens juist zijn en ga akkoord met de getoonde contributie en ingangsdatumregels. Ik begrijp dat de vereniging mijn gegevens gebruikt voor de ledenadministratie. Bij een minderjarige dient de ouder/verzorger dit formulier in. Verklaring versie 2026-09-v1.</label>
+<input type="checkbox" name="consent" value="1" required @checked(old('consent'))> {{ config('membership.registration_statement') }} Verklaring versie {{ config('membership.consent_version') }}.</label>
+<p><small>We bewaren je ingevulde naam, de verklaring en het tijdstip van je instemming. Dit formulier gebruikt geen gekwalificeerde elektronische handtekening.</small></p>
 <p>
 <button>Aanmelding versturen</button>
 </p>

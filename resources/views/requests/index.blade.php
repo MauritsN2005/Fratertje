@@ -8,8 +8,9 @@
 <span class="badge">{{ ['pending'=>'Te verwerken','approved'=>'Goedgekeurd','rejected'=>'Afgewezen'][$item->status] }}</span>
 </div>
 <p>Ontvangen {{ $item->created_at->format('d-m-Y H:i') }} · Beoogde ingangs-/einddatum {{ $item->effective_at->format('d-m-Y') }}<br>Akkoord vastgelegd op {{ $item->consented_at->format('d-m-Y H:i') }} ({{ $item->consent_version }})</p>
+@if($item->consent_statement)<p><strong>Bevestigde verklaring:</strong> {{ $item->consent_statement }}</p>@endif
 <dl>
-@foreach($item->payload as $key=>$value)<dt>{{ ['first_name'=>'Voornaam','last_name'=>'Achternaam','email'=>'E-mail','birth_date'=>'Geboortedatum','member_type_id'=>'Lidsoort-ID','nbvv_number'=>'Kweeknummer','street'=>'Straat','house_number'=>'Huisnummer','postal_code'=>'Postcode','city'=>'Woonplaats','registered_at'=>'Aanmelddatum','name'=>'Naam','signer_name'=>'Ondertekenaar'][$key]??$key }}</dt>
+@foreach($item->payload as $key=>$value)@continue($key==='consent_statement')<dt>{{ ['first_name'=>'Voornaam','last_name'=>'Achternaam','email'=>'E-mail','birth_date'=>'Geboortedatum','member_type_id'=>'Lidsoort-ID','nbvv_number'=>'Kweeknummer','street'=>'Straat','house_number'=>'Huisnummer','postal_code'=>'Postcode','city'=>'Woonplaats','registered_at'=>'Aanmelddatum','name'=>'Naam','signer_name'=>'Ondertekenaar'][$key]??$key }}</dt>
 <dd>{{ $value }}</dd>
 @endforeach</dl>@if($item->status==='pending')<form method="post" action="{{ route('requests.approve',$item) }}" data-confirm="Deze aanvraag goedkeuren en verwerken?">
 @csrf<button>Goedkeuren en verwerken</button>

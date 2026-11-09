@@ -18,19 +18,20 @@
 </thead>
 <tbody>
 @forelse($numbers as $number)<tr>
-<td>{{ $number->breeding_number }}</td>
+<td><a href="{{ route('breeding-numbers.show',$number->id) }}">{{ $number->breeding_number }}</a></td>
 <td>
 <a href="{{ route('members.show',$number->member_id) }}">{{ $number->member->full_name }}</a>
 </td>
 <td>{{ $number->issue_year }}</td>
 <td>{{ $number->trashed()?'Archief':($number->member->active_now?'Actief':'Gereserveerd / niet actief') }}</td>
 <td>
-@unless($number->trashed())<a href="{{ route('breeding-numbers.edit',$number) }}">Wijzigen</a>
+@if($number->trashed())<form method="post" action="{{ route('breeding-numbers.restore',$number->id) }}">@csrf<button>Nummer en lid herstellen</button></form>
+@else<a href="{{ route('breeding-numbers.edit',$number) }}">Wijzigen</a>
 <form class="inline" method="post" action="{{ route('breeding-numbers.destroy',$number) }}" data-confirm="Kweeknummer én bijbehorend lid archiveren?">
 @csrf 
 @method('DELETE')<button class="danger">Archiveren</button>
 </form>
-@endunless</td>
+@endif</td>
 </tr>
 @empty<tr>
 <td colspan="5">Nog geen kweeknummers.</td>

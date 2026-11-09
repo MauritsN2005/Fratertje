@@ -17,6 +17,16 @@ class MembershipRequest extends Model
         return ['payload' => 'array', 'requested_at' => 'date', 'effective_at' => 'date', 'consented_at' => 'datetime', 'processed_at' => 'datetime'];
     }
 
+    public function setConsentStatementAttribute(string $statement): void
+    {
+        $this->payload = array_replace($this->payload ?? [], ['consent_statement' => $statement]);
+    }
+
+    public function getConsentStatementAttribute(?string $statement): ?string
+    {
+        return $statement ?? ($this->payload['consent_statement'] ?? null);
+    }
+
     public function member(): BelongsTo
     {
         return $this->belongsTo(Member::class)->withTrashed();

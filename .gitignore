@@ -29,3 +29,6 @@ Thumbs.db
 /runtime/
 /docs/http-evidence/
 /project-history.bundle
+
+/phpunit.mysql.local.xml
+/phpunit.compat.local.xml

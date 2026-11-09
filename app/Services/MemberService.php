@@ -20,7 +20,7 @@ final class MemberService
             if ($member) {
                 $member = Member::whereKey($member->id)->lockForUpdate()->firstOrFail();
             }
-            $type = MemberType::findOrFail($data['member_type_id']);
+            $type = MemberType::whereKey($data['member_type_id'])->lockForUpdate()->firstOrFail();
             $age = CarbonImmutable::parse($data['birth_date'])->age;
             if (($type->code === 'adult' && $age < 18) || ($type->code === 'youth' && $age >= 18) || ($type->code === 'guest' && ! empty($data['nbvv_number'])) || ($type->code !== 'guest' && empty($data['nbvv_number']))) {
                 throw ValidationException::withMessages(['member_type_id' => 'Lidsoort, leeftijd en kweeknummer passen niet bij elkaar.']);
@@ -51,9 +51,9 @@ final class MemberService
     {
         DB::transaction(function () use ($member) {
             $member = Member::whereKey($member->id)->lockForUpdate()->firstOrFail();
+            $member->delete();
             $member->breedingNumber?->delete();
             $member->address->delete();
-            $member->delete();
         });
     }
 
@@ -64,9 +64,24 @@ final class MemberService
             if ($member->memberType->trashed()) {
                 throw ValidationException::withMessages(['member' => 'Herstel eerst de lidsoort.']);
             }
-            $member->address->restore();
-            BreedingNumber::onlyTrashed()->where('member_id', $id)->get()->each->restore();
+            $age = $member->birth_date->age;
+            $type = $member->memberType;
+            if ($type->code === 'youth' && $age >= 18) {
+                $type = MemberType::where('code', 'adult')->first();
+                if (! $type) {
+                    throw ValidationException::withMessages(['member' => 'Herstel eerst de volwassen lidsoort voor dit inmiddels volwassen lid.']);
+                }
+            }
+            $number = BreedingNumber::withTrashed()->where('member_id', $id)->lockForUpdate()->first();
+            if (($type->code === 'adult' && $age < 18) || ! $member->address ||
+                ($type->code === 'guest' && ($member->nbvv_number || $number)) ||
+                ($type->code !== 'guest' && (! $number || ! $member->nbvv_number || $number->breeding_number !== $member->nbvv_number))) {
+                throw ValidationException::withMessages(['member' => 'Herstel geblokkeerd: controleer leeftijd, adres en de verplichte, overeenkomende kweeknummerkoppeling.']);
+            }
+            $member->fill(['member_type_id' => $type->id, 'membership_code' => $type->code]);
             $member->restore();
+            $member->address->restore();
+            $number?->restore();
         });
     }
 }

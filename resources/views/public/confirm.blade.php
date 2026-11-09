@@ -2,10 +2,10 @@
 
 @section('content')<div class="card narrow">
 <h1>Afmelding bevestigen</h1>
-<p>{{ $member->full_name }}, je beoogde einddatum is {{ \App\Support\MembershipDates::effective(today()->toDateString())->format('d-m-Y') }}. De administratie verwerkt je verzoek en berekent een creditnota voor eventuele resterende, al gefactureerde maanden.</p>
+<p>{{ $member->full_name }}, je beoogde einddatum is {{ \App\Support\MembershipDates::effective(today()->toDateString())->max($member->starts_at)->format('d-m-Y') }}. De administratie verwerkt je verzoek en berekent een creditnota voor eventuele resterende, al gefactureerde maanden.</p>
 <form method="post" action="{{ request()->fullUrl() }}">
 @csrf<label class="consent">
-<input type="checkbox" name="consent" value="1" required> Ik wil mijn lidmaatschap beëindigen volgens de genoemde termijn.</label>
+<input type="checkbox" name="consent" value="1" required> {{ config('membership.cancellation_statement') }}</label>
 <p>
 <button>Afmelding indienen</button>
 </p>

@@ -20,10 +20,11 @@
 <label for="description">Omschrijving</label>
 <textarea id="description" name="description" required>{{ old('description',$type->description) }}</textarea>
 </div>
-<div class="field">
+@if($type->exists)<div class="field">
 <label for="price">Jaarprijs in euro's — geldig vanaf {{ now()->year+($type->exists?1:0) }}</label>
 <input id="price" type="number" min="0" max="9999" step="0.01" name="price" value="{{ old('price',$type->exists?$type->rateFor(now()->year+1)/100:18) }}" required>
 </div>
+@else<p>Het voorgeschreven basistarief wordt automatisch vastgelegd: volwassen € 36, jeugd en gast € 18 per jaar. Latere wijzigingen gelden voor volgend jaar.</p>@endif
 <button>Opslaan en tarief aankondigen</button>
 </form>
 @endsection
